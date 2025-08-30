@@ -1,36 +1,216 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 SteamLens
 
-## Getting Started
+**SteamLens** — Un dashboard ligero para visualizar perfiles de Steam: nivel, progreso, juegos, tiempo jugado, logros y ofertas destacadas.
+Construido con **Next.js (App Router)** + **TypeScript** + **Tailwind**.
+Este README te guía desde clonar el repo hasta ejecutar y desplegar, con ejemplos de endpoints y depuración.
 
-First, run the development server:
+---
+
+## 🧭 Tabla de contenidos
+
+* [Características](#-características)
+* [Demo local (rápido)](#-demo-local-rápido)
+* [Requisitos](#-requisitos)
+* [Instalación y setup](#-instalación-y-setup)
+* [Variables de entorno](#-variables-de-entorno)
+* [Estructura principal del proyecto](#-estructura-principal-del-proyecto)
+* [API proxy (endpoints que debes tener)](#-api-proxy-endpoints-que-debes-tener)
+* [Consumo desde el frontend (ejemplos)](#-consumo-desde-el-frontend-ejemplos)
+* [Errores comunes y solución (CORS, 403, imágenes)](#-errores-comunes-y-solución-cors-403-imágenes)
+* [Despliegue](#-despliegue)
+* [Contribuir / To-Do / Licencia](#-contribuir--to-do--licencia)
+
+---
+
+## ✨ Características
+
+* 🔎 Buscar por **SteamID64** y mostrar perfil (avatar, nombre, última conexión).
+* 🏆 Mostrar **logros** combinando `GetSchemaForGame` + `GetPlayerAchievements`.
+* 🎮 Listar **juegos** con horas jugadas y portadas.
+* 📈 Mostrar **nivel** del usuario (bar progress) usando `GetSteamLevel`.
+* 💸 Panel de **ofertas** utilizando proxy a `store.steampowered.com`.
+* 🔐 Todas las llamadas a Steam pasan por **API routes (proxy)** en Next.js para evitar CORS y proteger la API key.
+
+---
+
+## ▶️ Demo local (rápido)
+
+```bash
+# clona el repo
+git clone <tu-repo-url> steamlens
+cd steamlens
+
+# instala dependencias
+npm install
+
+# crea .env.local y agrega tu Steam API Key (ver abajo)
+# luego arranca dev server
+npm run dev
+```
+
+Abre `http://localhost:3000` y prueba un SteamID.
+
+---
+
+## 🛠 Requisitos
+
+* Node.js >= 18
+* npm (o pnpm/yarn si prefieres)
+* Cuenta de Steam y una **Steam Web API Key** ([https://steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey))
+
+---
+
+## ⚙️ Instalación y setup detallado
+
+```bash
+# crear proyecto (si partes de 0)
+npx create-next-app@latest steamlens --typescript --tailwind
+
+# entrar al proyecto
+cd steamlens
+
+# instalar utilidades (si no están)
+npm install class-variance-authority @radix-ui/react-avatar @radix-ui/react-tabs
+```
+
+Crea el archivo `.env.local` en la raíz:
+
+```env
+# .env.local
+STEAM_API_KEY=TU_API_KEY_DE_STEAM
+```
+
+Reinicia el servidor si ya estaba corriendo:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🗂 Estructura principal (recomendada)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+/app
+  /api
+    /steam
+      profile/route.ts        # proxy -> GetPlayerSummaries
+      games/route.ts          # proxy -> GetOwnedGames
+      achievements/route.ts   # proxy -> GetPlayerAchievements
+      game-schema/route.ts    # proxy -> GetSchemaForGame
+      level/route.ts          # proxy -> GetSteamLevel
+      offers/route.ts         # proxy -> store.featuredcategories
+  page.tsx                  # landing / orchestration
+/components
+  SteamProfile.tsx
+  SteamGames.tsx
+  SteamAchievements.tsx
+  SteamOffers.tsx
+  SteamSearchForm.tsx
+/public
+  error.png                 # fallback images
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🔌 API proxy — Endpoints importantes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+> Todos estos endpoints son *server-side* (Next.js API Routes) y deben residir en `app/api/steam/*/route.ts`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* **GET** `/api/steam/profile?steamid=STEAMID`
+  Proxy a: `ISteamUser/GetPlayerSummaries/v0002`
+  Respuesta principal: `data.response.players[0]`
 
-## Deploy on Vercel
+* **GET** `/api/steam/games?steamid=STEAMID`
+  Proxy a: `IPlayerService/GetOwnedGames/v0001?include_appinfo=true&format=json`
+  Respuesta: `data.response.games`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* **GET** `/api/steam/achievements?steamid=STEAMID&appid=APPID`
+  Proxy a: `ISteamUserStats/GetPlayerAchievements/v0001`
+  Respuesta: `data.playerstats`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* **GET** `/api/steam/game-schema?appid=APPID`
+  Proxy a: `ISteamUserStats/GetSchemaForGame/v2`
+  Respuesta: `data.game.availableGameStats.achievements`
+
+* **GET** `/api/steam/level?steamid=STEAMID`
+  Proxy a: `IPlayerService/GetSteamLevel/v1`
+  Respuesta: `data.response.player_level`
+
+* **GET** `/api/steam/offers`
+  Proxy a: `https://store.steampowered.com/api/featuredcategories/?cc=us&l=spanish`
+  Respuesta: `data.specials.items`
+
+---
+
+## 🧩 Consumo desde el frontend — Ejemplos
+
+```ts
+async function safeFetch(url: string) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Error API (${res.status})`)
+  return res.json()
+}
+
+const profile = await safeFetch(`/api/steam/profile?steamid=${steamId}`)
+```
+
+**Combinar achievements**:
+
+1. `/api/steam/game-schema?appid=APPID` → todos los logros del juego.
+2. `/api/steam/achievements?steamid=STEAMID&appid=APPID` → logros desbloqueados.
+3. Merge por `apiname` para marcar `achieved: true/false`.
+
+---
+
+## ⚠️ Errores comunes y cómo solucionarlos
+
+* **CORS en llamadas directas**: usar siempre proxy (API routes).
+* **403 Forbidden**: perfil privado o nunca abrió el juego.
+* **Imágenes bloqueadas**: usar `onError` en `<img>` → fallback `/error.png`.
+* **Key leak**: no exponer `STEAM_API_KEY` en frontend, usar solo en server.
+
+---
+
+## 📦 Scripts útiles
+
+```bash
+npm run dev     # dev
+npm run build   # build
+npm start       # start prod
+npm run lint    # lint
+```
+
+---
+
+## ☁️ Despliegue
+
+* **Vercel** (recomendado).
+* Configura `STEAM_API_KEY` en **Environment Variables**.
+* Mantén el proxy (API routes) activo.
+
+---
+
+## 🧑‍💻 Contribuir / To-Do
+
+* [ ] Modularizar hooks `useSteam*`
+* [ ] Añadir paginación en juegos
+* [ ] Guardar sesiones/favoritos
+* [ ] Mejorar barra de nivel con XP
+* [ ] Tests unitarios/e2e
+
+---
+
+## 📜 Licencia
+
+MIT © 2025 — Usa libremente. Si lo publicas, menciona `SteamLens` ✨
+
+---
+
+### 🔖 Badges
+
+```md
+[![Next.js](https://img.shields.io/badge/Next.js-13-blue?logo=next.js)](https://nextjs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Made with ❤️](https://img.shields.io/badge/Made%20with-%E2%9D%A4-red)]()
+```
