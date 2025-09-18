@@ -15,15 +15,19 @@ export async function GET(req: Request) {
     )
 
     if (!res.ok) {
-      console.log("fallo 1");
-      return NextResponse.json({ error: "Error al consultar schema" }, { status: res.status })
+      return NextResponse.json(
+        { error: "Error al consultar schema" },
+        { status: res.status }
+      )
     }
 
     const data = await res.json()
     return NextResponse.json(data)
   } catch (err) {
-    console.log("fallo 2");
     console.error("Error fetch schema:", err)
-    return NextResponse.json({ error: "Fallo en la petición a Steam" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Fallo en la petición a Steam" },
+      { status: 500 }
+    )
   }
 }

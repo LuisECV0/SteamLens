@@ -1,15 +1,19 @@
 "use client"
+
 import { useState } from "react"
 import SteamOffers from "./components/SteamOffers"
 import SteamProfile from "./components/SteamProfile"
 import SteamSearchForm from "./components/SteamSearchForm"
 import SteamGames from "./components/SteamGames"
 import SteamAchievements from "./components/SteamAchievements"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
 export default function HomePage() {
   const [steamId, setSteamId] = useState("")
   const [games, setGames] = useState<any[]>([])
-  const [achievements, setAchievements] = useState<any[]>([])
+  const [achievements, setAchievements] = useState<any[] | null>(null)
   const [selectedGame, setSelectedGame] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +29,7 @@ export default function HomePage() {
     setLoading(true)
     setError(null)
     setGames([])
-    setAchievements([])
+    setAchievements(null)
     setSelectedGame(null)
 
     try {
@@ -45,11 +49,13 @@ export default function HomePage() {
 
   async function handleSelectGame(game: any) {
     setSelectedGame(game)
-    setAchievements([])
+    setAchievements(null) // limpiamos pero no tocamos el perfil
     setError(null)
 
     try {
-      const dataUser = await safeFetch(`/api/steam/profile?steamid=${steamId}&appid=${game.appid}`)
+      const dataUser = await safeFetch(
+        `/api/steam/profile?steamid=${steamId}&appid=${game.appid}`
+      )
       const dataSchema = await safeFetch(`/api/steam/game-schema?appid=${game.appid}`)
 
       if (dataSchema.game?.availableGameStats?.achievements) {
@@ -68,18 +74,27 @@ export default function HomePage() {
         })
         setAchievements(merged)
       } else {
-        setError("Este juego no tiene logros disponibles")
+        setAchievements([]) // señalamos que no hay logros
       }
     } catch (err: any) {
-      setError(err.message || "Error al cargar logros")
+      console.error(err)
+      setAchievements([]) // evitamos que crashee
     }
   }
 
+  // 📊 Top Juegos
+  const topGames = [...games]
+    .sort((a, b) => b.playtime_forever - a.playtime_forever)
+    .slice(0, 10)
+    .map((g) => ({
+      name: g.name,
+      hours: (g.playtime_forever / 60).toFixed(1),
+    }))
+
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Buscar perfil de Steam</h1>
 
-      {/* Formulario */}
       <SteamSearchForm
         steamId={steamId}
         setSteamId={setSteamId}
@@ -87,20 +102,70 @@ export default function HomePage() {
         loading={loading}
       />
 
-      {/* Error */}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-red-500 mt-2">{error}</p>}
 
-      {/* Perfil */}
-      {steamId && !error && <SteamProfile steamId={steamId} />}
+      {steamId && !error && (
+        <Tabs defaultValue="dashboard" className="w-full mt-6">
+          <TabsList className="mb-4">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="offers">Ofertas</TabsTrigger>
+            <TabsTrigger value="top">Top Juegos</TabsTrigger>
+          </TabsList>
 
-      {/* Juegos */}
-      <SteamGames games={games} selectedGame={selectedGame} onSelectGame={handleSelectGame} />
+          <TabsContent value="dashboard">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="md:col-span-1">
+                <SteamProfile steamId={steamId} />
+              </Card>
 
-      {/* Logros */}
-      <SteamAchievements achievements={achievements} />
+              <div className="md:col-span-2 grid grid-cols-1 gap-6">
+                <CardContent>
+                  <SteamGames
+                    games={games}
+                    selectedGame={selectedGame}
+                    onSelectGame={handleSelectGame}
+                  />
+                </CardContent>
 
-      {/* Ofertas */}
-      <SteamOffers />
+                <CardContent>
+                  <SteamAchievements achievements={achievements} />
+                </CardContent>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="offers">
+            <SteamOffers />
+          </TabsContent>
+
+          <TabsContent value="top">
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Juegos por horas jugadas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={topGames}>
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="hours" fill="#4F46E5" />
+                  </BarChart>
+                </ResponsiveContainer>
+
+                <ul className="mt-4 space-y-2">
+                  {topGames.map((g) => (
+                    <li key={g.name} className="flex justify-between border-b pb-1">
+                      <span>{g.name}</span>
+                      <span className="text-muted-foreground">{g.hours} h</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   )
 }

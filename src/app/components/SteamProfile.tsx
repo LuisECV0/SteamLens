@@ -1,10 +1,23 @@
 "use client"
+console.log("hola");
 import { useEffect, useState } from "react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Progress } from "@/components/ui/progress"
+import { Star, Trophy, Gamepad2, Clock } from "lucide-react"
 
-export default function SteamProfile({ steamId }: { steamId: string }) {
+interface SteamProfileProps {
+  steamId: string
+}
+
+export default function SteamProfile({ steamId }: SteamProfileProps) {
   const [profile, setProfile] = useState<any>(null)
   const [level, setLevel] = useState<number>(0)
   const [gamesCount, setGamesCount] = useState<number>(0)
+  const [totalPlaytime, setTotalPlaytime] = useState<number>(0)
+  const [achievementsCount, setAchievementsCount] = useState<number>(0)
+  const [perfectGames, setPerfectGames] = useState<number>(0)
 
   useEffect(() => {
     if (!steamId) return
@@ -21,10 +34,19 @@ export default function SteamProfile({ steamId }: { steamId: string }) {
         const dataLevel = await resLevel.json()
         setLevel(dataLevel.response.player_level || 0)
 
-        // Juegos (solo para contar)
+        // Juegos
         const resGames = await fetch(`/api/steam/games?steamid=${steamId}`)
         const dataGames = await resGames.json()
-        setGamesCount(dataGames.response?.games?.length || 0)
+        const games = dataGames.response?.games || []
+        setGamesCount(games.length)
+
+        // Calcular stats
+        const totalHours = games.reduce((sum: number, g: any) => sum + g.playtime_forever, 0)
+        setTotalPlaytime(totalHours)
+
+        // Fake counters de logros y perfect games (ejemplo: si necesitas real habría que hacer otra llamada por juego)
+        setAchievementsCount(Math.round(games.length * 20)) // aproximación fake
+        setPerfectGames(Math.round(games.length * 0.1)) // aproximación fake
       } catch (err) {
         console.error("Error cargando perfil:", err)
       }
@@ -36,29 +58,83 @@ export default function SteamProfile({ steamId }: { steamId: string }) {
   if (!profile) return null
 
   const lastOnline = new Date(profile.lastlogoff * 1000).toLocaleString()
-  const progress = (level % 10) * 10
+  const nextLevelProgress = ((level % 10) / 10) * 100
 
   return (
-    <div className="border rounded-lg p-4 mb-6 bg-white shadow">
-      <div className="flex items-center gap-4 mb-4">
-        <img src={profile.avatarfull} alt="avatar" className="w-20 h-20 rounded-full" />
-        <div>
-          <h2 className="text-2xl font-bold">{profile.personaname}</h2>
-          <a href={profile.profileurl} target="_blank" className="text-blue-500 underline text-sm">
-            Ver en Steam
-          </a>
-          <p className="text-sm text-gray-500">Última conexión: {lastOnline}</p>
-          <p className="text-sm text-gray-500">Juegos en total: {gamesCount}</p>
-        </div>
-      </div>
+    <Card className="relative overflow-hidden bg-gradient-to-br from-card via-card/90 to-card/70 border border-primary/20 shadow-lg">
+      {/* Fondo decorativo simple */}
+      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_center,theme(colors.primary)_0%,transparent_70%)]" />
 
-      <div>
-        <p className="font-semibold">Nivel {level}</p>
-        <div className="w-full h-4 bg-gray-200 rounded">
-          <div className="h-4 bg-green-500 rounded" style={{ width: `${progress}%` }} />
+      <CardContent className="p-6 relative z-10">
+        <div className="text-center space-y-4">
+          {/* Avatar */}
+          <div className="relative mx-auto w-fit">
+            <Avatar className="h-20 w-20 border-2 border-primary shadow-md">
+              <AvatarImage src={profile.avatarfull} alt={profile.personaname} />
+              <AvatarFallback>
+                {profile.personaname.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          {/* Nombre y enlace */}
+          <div>
+            <h3 className="text-xl font-bold">{profile.personaname}</h3>
+            <a
+              href={profile.profileurl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-blue-500 hover:underline"
+            >
+              Ver perfil en Steam
+            </a>
+            <p className="text-xs text-muted-foreground mt-1">Última conexión: {lastOnline}</p>
+            <Badge variant="outline" className="mt-2">
+              <Star className="w-3 h-3 mr-1" /> Nivel {level}
+            </Badge>
+          </div>
+
+          {/* Progreso al siguiente nivel */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Progreso al nivel {level + 1}</span>
+              <span>{Math.round(nextLevelProgress)}%</span>
+            </div>
+            <Progress value={nextLevelProgress} className="h-2" />
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4 pt-4">
+            <div className="text-center p-3 rounded-lg bg-muted/40">
+              <Gamepad2 className="h-5 w-5 text-primary mx-auto mb-1" />
+              <div className="text-lg font-bold">{gamesCount}</div>
+              <div className="text-xs text-muted-foreground">Juegos</div>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-muted/40">
+              <Clock className="h-5 w-5 text-secondary mx-auto mb-1" />
+              <div className="text-lg font-bold">{Math.round(totalPlaytime / 60)}</div>
+              <div className="text-xs text-muted-foreground">Horas</div>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-muted/40">
+              <Trophy className="h-5 w-5 text-accent mx-auto mb-1" />
+              <div className="text-lg font-bold">{achievementsCount}</div>
+              <div className="text-xs text-muted-foreground">Logros</div>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-muted/40">
+              <Star className="h-5 w-5 text-yellow-500 mx-auto mb-1" />
+              <div className="text-lg font-bold">{perfectGames}</div>
+              <div className="text-xs text-muted-foreground">100%</div>
+            </div>
+          </div>
+
+          {/* Badge final */}
+          <div className="pt-4">
+            <Badge className="bg-gradient-to-r from-primary to-secondary text-white px-4 py-1">
+              🎮 Gamer Elite
+            </Badge>
+          </div>
         </div>
-        <p className="text-xs text-gray-500">{progress}% hacia el siguiente nivel</p>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
