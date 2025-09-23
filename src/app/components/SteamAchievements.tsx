@@ -1,21 +1,23 @@
 "use client"
 
+import Image from "next/image"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
+interface Achievement {
+  name: string
+  description?: string
+  icon: string
+  achieved: boolean
+}
+
 type Props = {
-  achievements: any[] | null
+  achievements: Achievement[] | null
 }
 
 export default function SteamAchievements({ achievements }: Props) {
-  function handleImageError(e: React.SyntheticEvent<HTMLImageElement>) {
-    const target = e.currentTarget
-    target.onerror = null
-    target.src = "./error.png"
-  }
-
   if (achievements === null) {
     return <p className="text-muted-foreground">Selecciona un juego para ver logros</p>
   }
@@ -27,10 +29,12 @@ export default function SteamAchievements({ achievements }: Props) {
           <CardTitle>🏆 Logros</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center p-6">
-          <img
+          <Image
             src="/error.png"
             alt="Sin logros"
-            className="w-24 h-24 mb-3 opacity-70"
+            width={96}
+            height={96}
+            className="mb-3 opacity-70"
           />
           <p className="text-muted-foreground">Este juego no tiene logros disponibles</p>
         </CardContent>
@@ -56,11 +60,12 @@ export default function SteamAchievements({ achievements }: Props) {
                     : "bg-muted hover:bg-accent/30 dark:bg-gray-800 dark:hover:bg-gray-700"
                 )}
               >
-                <img
-                  src={ach.icon}
+                <Image
+                  src={ach.icon || "/error.png"}
                   alt={ach.name}
-                  className="w-14 h-14 object-cover rounded"
-                  onError={handleImageError}
+                  width={56}
+                  height={56}
+                  className="rounded object-cover"
                 />
                 <div className="flex flex-col gap-1">
                   <span className="font-semibold leading-tight">{ach.name}</span>

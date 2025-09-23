@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ExternalLink, Percent } from "lucide-react"
+import Image from "next/image"
 
 interface Offer {
   id: number
@@ -47,10 +48,16 @@ export default function SteamOffers() {
   if (error) {
     return <p className="text-red-500">{error}</p>
   }
+  if (offers.length === 0) {
+    return (
+      <Card className="p-6 text-center">
+        <p className="text-muted-foreground">😔 No se encontraron ofertas activas</p>
+      </Card>
+    )
+  }
 
   return (
     <div className="space-y-6">
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -68,7 +75,9 @@ export default function SteamOffers() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {offers.map((offer) => {
           const originalPrice =
-            offer.final_price / 100 / (1 - offer.discount_percent / 100)
+            offer.discount_percent > 0
+              ? offer.final_price / 100 / (1 - offer.discount_percent / 100)
+              : offer.final_price / 100
 
           return (
             <Card
@@ -76,17 +85,18 @@ export default function SteamOffers() {
               className="group hover:scale-[1.02] transition-all duration-300 overflow-hidden border-2 border-transparent hover:border-green-300"
             >
               <div className="relative">
-                <img
-                  src={offer.header_image}
+                <Image
+                  src={offer.header_image || "/error.png"}
                   alt={offer.name}
+                  width={600}
+                  height={200}
                   className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/error.png"
-                  }}
                 />
-                <div className="absolute top-3 left-3">
-                  <Badge variant="destructive">-{offer.discount_percent}%</Badge>
-                </div>
+                {offer.discount_percent > 0 && (
+                  <div className="absolute top-3 left-3">
+                    <Badge variant="destructive">-{offer.discount_percent}%</Badge>
+                  </div>
+                )}
               </div>
 
               <CardContent className="p-4 space-y-2">
@@ -94,21 +104,31 @@ export default function SteamOffers() {
                   {offer.name}
                 </h3>
 
-                <p className="text-sm text-muted-foreground line-through">
-                  {originalPrice.toFixed(2)} {offer.currency}
-                </p>
+                {offer.discount_percent > 0 && (
+                  <p className="text-sm text-muted-foreground line-through">
+                    {originalPrice.toFixed(2)} {offer.currency}
+                  </p>
+                )}
+
                 <p className="text-lg font-bold text-green-600">
                   {(offer.final_price / 100).toFixed(2)} {offer.currency}
                 </p>
 
                 <div className="flex justify-end">
                   <Button
+                    asChild
                     variant="outline"
                     size="sm"
                     className="group-hover:bg-green-600 group-hover:text-white transition-colors"
                   >
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Ver en Steam
+                    <a
+                      href={`https://store.steampowered.com/app/${offer.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Ver en Steam
+                    </a>
                   </Button>
                 </div>
               </CardContent>
@@ -119,12 +139,19 @@ export default function SteamOffers() {
 
       <div className="text-center">
         <Button
+          asChild
           variant="outline"
           size="lg"
           className="hover:bg-green-600 hover:text-white transition-colors"
         >
-          <Percent className="h-4 w-4 mr-2" />
-          Ver todas las ofertas
+          <a
+            href="https://store.steampowered.com/specials/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Percent className="h-4 w-4 mr-2" />
+            Ver todas las ofertas
+          </a>
         </Button>
       </div>
     </div>
