@@ -13,15 +13,13 @@ export default function SteamAchievements({ achievements }: Props) {
   function handleImageError(e: React.SyntheticEvent<HTMLImageElement>) {
     const target = e.currentTarget
     target.onerror = null
-    target.src = "/error.png"
+    target.src = "./error.png"
   }
 
-  // Caso 1: No se seleccionó un juego
   if (achievements === null) {
     return <p className="text-muted-foreground">Selecciona un juego para ver logros</p>
   }
 
-  // Caso 2: El juego no tiene logros
   if (achievements.length === 0) {
     return (
       <Card className="mb-6">
@@ -40,7 +38,6 @@ export default function SteamAchievements({ achievements }: Props) {
     )
   }
 
-  // Caso 3: Sí hay logros
   return (
     <Card className="mb-6">
       <CardHeader>

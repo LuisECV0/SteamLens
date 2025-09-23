@@ -50,7 +50,7 @@ export default function SteamOffers() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -65,7 +65,6 @@ export default function SteamOffers() {
         </CardContent>
       </Card>
 
-      {/* Grid de ofertas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {offers.map((offer) => {
           const originalPrice =
@@ -118,7 +117,6 @@ export default function SteamOffers() {
         })}
       </div>
 
-      {/* Botón de más ofertas */}
       <div className="text-center">
         <Button
           variant="outline"

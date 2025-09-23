@@ -10,11 +10,26 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
+type Game = {
+  appid: number
+  name: string
+  playtime_forever: number
+  img: string
+}
+
+type Achievement = {
+  name: string
+  description: string
+  icon: string
+  icongray?: string
+  achieved?: boolean
+}
+
 export default function HomePage() {
   const [steamId, setSteamId] = useState("")
-  const [games, setGames] = useState<any[]>([])
-  const [achievements, setAchievements] = useState<any[] | null>(null)
-  const [selectedGame, setSelectedGame] = useState<any>(null)
+  const [games, setGames] = useState<Game[]>([])
+  const [achievements, setAchievements] = useState<Achievement[] | null>(null)
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,16 +55,20 @@ export default function HomePage() {
       } else {
         setError("Usuario no encontrado")
       }
-    } catch (err: any) {
-      setError(err.message || "No se pudo conectar con la API")
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError("No se pudo conectar con la API")
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  async function handleSelectGame(game: any) {
+  async function handleSelectGame(game: Game) {
     setSelectedGame(game)
-    setAchievements(null) // limpiamos pero no tocamos el perfil
+    setAchievements(null)
     setError(null)
 
     try {
@@ -62,7 +81,7 @@ export default function HomePage() {
         const schemaAchievements = dataSchema.game.availableGameStats.achievements
         const userAchievements = dataUser.playerstats?.achievements || []
 
-        const merged = schemaAchievements.map((ach: any) => {
+        const merged: Achievement[] = schemaAchievements.map((ach: any) => {
           const userAch = userAchievements.find((ua: any) => ua.apiname === ach.name)
           return {
             name: ach.displayName,
@@ -74,11 +93,11 @@ export default function HomePage() {
         })
         setAchievements(merged)
       } else {
-        setAchievements([]) // señalamos que no hay logros
+        setAchievements([])
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err)
-      setAchievements([]) // evitamos que crashee
+      setAchievements([])
     }
   }
 

@@ -1,5 +1,5 @@
 "use client"
-console.log("hola");
+
 import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -11,8 +11,22 @@ interface SteamProfileProps {
   steamId: string
 }
 
+interface Profile {
+  steamid: string
+  personaname: string
+  profileurl: string
+  avatarfull: string
+  lastlogoff: number
+}
+
+interface Game {
+  appid: number
+  name: string
+  playtime_forever: number
+}
+
 export default function SteamProfile({ steamId }: SteamProfileProps) {
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [level, setLevel] = useState<number>(0)
   const [gamesCount, setGamesCount] = useState<number>(0)
   const [totalPlaytime, setTotalPlaytime] = useState<number>(0)
@@ -24,29 +38,29 @@ export default function SteamProfile({ steamId }: SteamProfileProps) {
 
     async function fetchData() {
       try {
-        // Perfil
+        // 📌 Perfil
         const resProfile = await fetch(`/api/steam/profile?steamid=${steamId}`)
         const dataProfile = await resProfile.json()
-        setProfile(dataProfile.response.players[0])
+        const player: Profile | undefined = dataProfile.response.players?.[0]
+        if (player) setProfile(player)
 
-        // Nivel
+        // 📌 Nivel
         const resLevel = await fetch(`/api/steam/level?steamid=${steamId}`)
         const dataLevel = await resLevel.json()
         setLevel(dataLevel.response.player_level || 0)
 
-        // Juegos
+        // 📌 Juegos
         const resGames = await fetch(`/api/steam/games?steamid=${steamId}`)
         const dataGames = await resGames.json()
-        const games = dataGames.response?.games || []
+        const games: Game[] = dataGames.response?.games || []
         setGamesCount(games.length)
 
-        // Calcular stats
-        const totalHours = games.reduce((sum: number, g: any) => sum + g.playtime_forever, 0)
-        setTotalPlaytime(totalHours)
+        const totalMinutes = games.reduce((sum, g) => sum + g.playtime_forever, 0)
+        setTotalPlaytime(totalMinutes)
 
-        // Fake counters de logros y perfect games (ejemplo: si necesitas real habría que hacer otra llamada por juego)
-        setAchievementsCount(Math.round(games.length * 20)) // aproximación fake
-        setPerfectGames(Math.round(games.length * 0.1)) // aproximación fake
+        // 📌 Stats aproximados (placeholder, puedes mejorar con datos reales)
+        setAchievementsCount(Math.round(games.length * 20))
+        setPerfectGames(Math.round(games.length * 0.1))
       } catch (err) {
         console.error("Error cargando perfil:", err)
       }
@@ -62,9 +76,7 @@ export default function SteamProfile({ steamId }: SteamProfileProps) {
 
   return (
     <Card className="relative overflow-hidden bg-gradient-to-br from-card via-card/90 to-card/70 border border-primary/20 shadow-lg">
-      {/* Fondo decorativo simple */}
       <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_center,theme(colors.primary)_0%,transparent_70%)]" />
-
       <CardContent className="p-6 relative z-10">
         <div className="text-center space-y-4">
           {/* Avatar */}
@@ -94,7 +106,7 @@ export default function SteamProfile({ steamId }: SteamProfileProps) {
             </Badge>
           </div>
 
-          {/* Progreso al siguiente nivel */}
+          {/* Progreso nivel */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Progreso al nivel {level + 1}</span>
@@ -127,7 +139,7 @@ export default function SteamProfile({ steamId }: SteamProfileProps) {
             </div>
           </div>
 
-          {/* Badge final */}
+          {/* Distinción */}
           <div className="pt-4">
             <Badge className="bg-gradient-to-r from-primary to-secondary text-white px-4 py-1">
               🎮 Gamer Elite

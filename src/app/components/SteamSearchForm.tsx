@@ -3,7 +3,7 @@
 type Props = {
   steamId: string
   setSteamId: (id: string) => void
-  handleSubmit: (e: React.FormEvent) => void
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   loading: boolean
 }
 
