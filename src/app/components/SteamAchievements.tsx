@@ -1,17 +1,11 @@
 "use client"
 
+import { Achievement } from "@/src/types/achievemen"
 import Image from "next/image"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-
-interface Achievement {
-  name: string
-  description?: string
-  icon: string
-  achieved: boolean
-}
 
 type Props = {
   achievements: Achievement[] | null

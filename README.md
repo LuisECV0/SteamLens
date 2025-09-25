@@ -1,4 +1,4 @@
-# 🚀 SteamLens
+# SteamLens
 
 **SteamLens** — Un dashboard ligero para visualizar perfiles de Steam: nivel, progreso, juegos, tiempo jugado, logros y ofertas destacadas.
 Construido con **Next.js (App Router)** + **TypeScript** + **Tailwind**.
@@ -6,7 +6,7 @@ Este README te guía desde clonar el repo hasta ejecutar y desplegar, con ejempl
 
 ---
 
-## 🧭 Tabla de contenidos
+## Tabla de contenidos
 
 * [Características](#-características)
 * [Demo local (rápido)](#-demo-local-rápido)
@@ -22,18 +22,18 @@ Este README te guía desde clonar el repo hasta ejecutar y desplegar, con ejempl
 
 ---
 
-## ✨ Características
+## Características
 
-* 🔎 Buscar por **SteamID64** y mostrar perfil (avatar, nombre, última conexión).
-* 🏆 Mostrar **logros** combinando `GetSchemaForGame` + `GetPlayerAchievements`.
-* 🎮 Listar **juegos** con horas jugadas y portadas.
-* 📈 Mostrar **nivel** del usuario (bar progress) usando `GetSteamLevel`.
-* 💸 Panel de **ofertas** utilizando proxy a `store.steampowered.com`.
-* 🔐 Todas las llamadas a Steam pasan por **API routes (proxy)** en Next.js para evitar CORS y proteger la API key.
+* Buscar por **SteamID64** y mostrar perfil (avatar, nombre, última conexión).
+* Mostrar **logros** combinando `GetSchemaForGame` + `GetPlayerAchievements`.
+* Listar **juegos** con horas jugadas y portadas.
+* Mostrar **nivel** del usuario (bar progress) usando `GetSteamLevel`.
+* Panel de **ofertas** utilizando proxy a `store.steampowered.com`.
+* Todas las llamadas a Steam pasan por **API routes (proxy)** en Next.js para evitar CORS y proteger la API key.
 
 ---
 
-## ▶️ Demo local (rápido)
+## ▶ Demo local (rápido)
 
 ```bash
 # clona el repo
@@ -52,7 +52,7 @@ Abre `http://localhost:3000` y prueba un SteamID.
 
 ---
 
-## 🛠 Requisitos
+## Requisitos
 
 * Node.js >= 18
 * npm (o pnpm/yarn si prefieres)
@@ -60,7 +60,7 @@ Abre `http://localhost:3000` y prueba un SteamID.
 
 ---
 
-## ⚙️ Instalación y setup detallado
+## Instalación y setup detallado
 
 ```bash
 # crear proyecto (si partes de 0)
@@ -88,7 +88,7 @@ npm run dev
 
 ---
 
-## 🗂 Estructura principal (recomendada)
+## Estructura principal (recomendada)
 
 ```
 /app
@@ -113,7 +113,7 @@ npm run dev
 
 ---
 
-## 🔌 API proxy — Endpoints importantes
+## API proxy — Endpoints importantes
 
 > Todos estos endpoints son *server-side* (Next.js API Routes) y deben residir en `app/api/steam/*/route.ts`.
 
@@ -143,7 +143,7 @@ npm run dev
 
 ---
 
-## 🧩 Consumo desde el frontend — Ejemplos
+## Consumo desde el frontend — Ejemplos
 
 ```ts
 async function safeFetch(url: string) {
@@ -163,7 +163,7 @@ const profile = await safeFetch(`/api/steam/profile?steamid=${steamId}`)
 
 ---
 
-## ⚠️ Errores comunes y cómo solucionarlos
+## Errores comunes y cómo solucionarlos
 
 * **CORS en llamadas directas**: usar siempre proxy (API routes).
 * **403 Forbidden**: perfil privado o nunca abrió el juego.
@@ -172,45 +172,10 @@ const profile = await safeFetch(`/api/steam/profile?steamid=${steamId}`)
 
 ---
 
-## 📦 Scripts útiles
-
-```bash
-npm run dev     # dev
-npm run build   # build
-npm start       # start prod
-npm run lint    # lint
-```
-
----
-
-## ☁️ Despliegue
+## Despliegue
 
 * **Vercel** (recomendado).
 * Configura `STEAM_API_KEY` en **Environment Variables**.
 * Mantén el proxy (API routes) activo.
 
 ---
-
-## 🧑‍💻 Contribuir / To-Do
-
-* [ ] Modularizar hooks `useSteam*`
-* [ ] Añadir paginación en juegos
-* [ ] Guardar sesiones/favoritos
-* [ ] Mejorar barra de nivel con XP
-* [ ] Tests unitarios/e2e
-
----
-
-## 📜 Licencia
-
-MIT © 2025 — Usa libremente. Si lo publicas, menciona `SteamLens` ✨
-
----
-
-### 🔖 Badges
-
-```md
-[![Next.js](https://img.shields.io/badge/Next.js-13-blue?logo=next.js)](https://nextjs.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Made with ❤️](https://img.shields.io/badge/Made%20with-%E2%9D%A4-red)]()
-```

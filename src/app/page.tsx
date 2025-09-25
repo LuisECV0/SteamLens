@@ -1,5 +1,6 @@
 "use client"
 
+import { Achievement } from "../types/achievemen"
 import { useState } from "react"
 import SteamOffers from "./components/SteamOffers"
 import SteamProfile from "./components/SteamProfile"
@@ -17,12 +18,8 @@ type Game = {
   img: string
 }
 
-type Achievement = {
-  name: string
-  description: string
-  icon: string
-  icongray?: string
-  achieved?: boolean
+type Props = {
+  achievements: Achievement[]
 }
 
 export default function HomePage() {
