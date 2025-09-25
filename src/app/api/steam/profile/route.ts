@@ -5,6 +5,9 @@ export async function GET(req: Request) {
   const steamId = searchParams.get("steamid")
   const apiKey = process.env.STEAM_API_KEY
 
+  console.log("🔑 API Key:", apiKey ? "Cargada ✅" : "NO definida ❌")
+  console.log("🎮 SteamID recibido:", steamId)
+
   if (!steamId) {
     return NextResponse.json({ error: "Falta steamid" }, { status: 400 })
   }
@@ -14,18 +17,22 @@ export async function GET(req: Request) {
   }
 
   try {
-    const res = await fetch(
-      `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${apiKey}&steamids=${steamId}`
-    )
+    const apiUrl = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${apiKey}&steamids=${steamId}`
+    console.log("🌍 URL llamada:", apiUrl)
+
+    const res = await fetch(apiUrl)
 
     if (!res.ok) {
+      console.error("❌ Steam devolvió error:", res.status, res.statusText)
       return NextResponse.json({ error: "Error al consultar Steam" }, { status: res.status })
     }
 
     const data = await res.json()
+    console.log("✅ Respuesta Steam:", data)
+
     return NextResponse.json(data)
   } catch (err) {
-    console.error("Error fetch Steam:", err)
+    console.error("🔥 Error fetch Steam:", err)
     return NextResponse.json({ error: "Fallo en la petición a Steam" }, { status: 500 })
   }
 }
