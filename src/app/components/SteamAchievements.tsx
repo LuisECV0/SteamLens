@@ -1,6 +1,6 @@
 "use client"
 
-import { Achievement } from "@/src/types/achievemen"
+import { Achievement } from "@/src/types/achievement"
 import Image from "next/image"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"

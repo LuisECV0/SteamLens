@@ -1,6 +1,6 @@
 "use client"
 
-import { Achievement } from "../types/achievemen"
+import { Achievement } from "../types/achievement"
 import { useState } from "react"
 import SteamOffers from "./components/SteamOffers"
 import SteamProfile from "./components/SteamProfile"
