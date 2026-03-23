@@ -9,9 +9,14 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Falta parámetro appid" }, { status: 400 })
   }
 
+  if (!apiKey) {
+    return NextResponse.json({ error: "API Key no configurada" }, { status: 500 })
+  }
+
   try {
     const res = await fetch(
-      `https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=${apiKey}&appid=${appId}`
+      `https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=${apiKey}&appid=${appId}`,
+      { cache: "no-store" }
     )
 
     if (!res.ok) {
@@ -23,8 +28,7 @@ export async function GET(req: Request) {
 
     const data = await res.json()
     return NextResponse.json(data)
-  } catch (err) {
-    console.error("Error fetch schema:", err)
+  } catch {
     return NextResponse.json(
       { error: "Fallo en la petición a Steam" },
       { status: 500 }

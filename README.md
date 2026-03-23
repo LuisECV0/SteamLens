@@ -94,19 +94,15 @@ npm run dev
 /app
   /api
     /steam
-      profile/route.ts        # proxy -> GetPlayerSummaries
+      profile/route.ts        # proxy -> GetPlayerSummaries (steamid) + logros (steamid+appid)
       games/route.ts          # proxy -> GetOwnedGames
-      achievements/route.ts   # proxy -> GetPlayerAchievements
       game-schema/route.ts    # proxy -> GetSchemaForGame
       level/route.ts          # proxy -> GetSteamLevel
       offers/route.ts         # proxy -> store.featuredcategories
   page.tsx                  # landing / orchestration
-/components
-  SteamProfile.tsx
-  SteamGames.tsx
-  SteamAchievements.tsx
-  SteamOffers.tsx
-  SteamSearchForm.tsx
+/src/app/components
+  SteamApp.tsx            # UI principal (dashboard + ofertas + top)
+  providers.tsx          # ThemeProvider
 /public
   error.png                 # fallback images
 ```
@@ -121,13 +117,13 @@ npm run dev
   Proxy a: `ISteamUser/GetPlayerSummaries/v0002`
   Respuesta principal: `data.response.players[0]`
 
+* **GET** `/api/steam/profile?steamid=STEAMID&appid=APPID`
+  Proxy a: `ISteamUserStats/GetPlayerAchievements/v0001`
+  Respuesta: `data.playerstats.achievements`
+
 * **GET** `/api/steam/games?steamid=STEAMID`
   Proxy a: `IPlayerService/GetOwnedGames/v0001?include_appinfo=true&format=json`
   Respuesta: `data.response.games`
-
-* **GET** `/api/steam/achievements?steamid=STEAMID&appid=APPID`
-  Proxy a: `ISteamUserStats/GetPlayerAchievements/v0001`
-  Respuesta: `data.playerstats`
 
 * **GET** `/api/steam/game-schema?appid=APPID`
   Proxy a: `ISteamUserStats/GetSchemaForGame/v2`
@@ -158,7 +154,7 @@ const profile = await safeFetch(`/api/steam/profile?steamid=${steamId}`)
 **Combinar achievements**:
 
 1. `/api/steam/game-schema?appid=APPID` → todos los logros del juego.
-2. `/api/steam/achievements?steamid=STEAMID&appid=APPID` → logros desbloqueados.
+2. `/api/steam/profile?steamid=STEAMID&appid=APPID` → logros desbloqueados.
 3. Merge por `apiname` para marcar `achieved: true/false`.
 
 ---

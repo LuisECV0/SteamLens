@@ -15,7 +15,8 @@ export async function GET(req: Request) {
 
   try {
     const res = await fetch(
-      `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${apiKey}&steamid=${steamId}&include_appinfo=true&format=json`
+      `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${apiKey}&steamid=${steamId}&include_appinfo=true&format=json`,
+      { cache: "no-store" }
     )
 
     if (!res.ok) {
@@ -24,8 +25,7 @@ export async function GET(req: Request) {
 
     const data = await res.json()
     return NextResponse.json(data)
-  } catch (err) {
-    console.error("Error fetch juegos:", err)
+  } catch {
     return NextResponse.json({ error: "Fallo en la petición a Steam" }, { status: 500 })
   }
 }
