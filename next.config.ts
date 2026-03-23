@@ -2,9 +2,7 @@ import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true, // si quieres evitar que Vercel bloquee por ESLint
-  },
+
   images: {
     remotePatterns: [
       {
