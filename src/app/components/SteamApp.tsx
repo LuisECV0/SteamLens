@@ -22,7 +22,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
+function SteamSearchForm({
+  steamIdInput,
+  setSteamIdInput,
+  handleSubmit,
+  loading
+}: {
+  steamIdInput: string
+  setSteamIdInput: (v: string) => void
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+  loading: boolean
+}) {
+  return (
+    <div className="max-w-2xl">
+      <form onSubmit={handleSubmit} className="flex gap-3 flex-col sm:flex-row sm:items-center mb-6">
+        <input
+          type="text"
+          placeholder="Tu SteamID64"
+          value={steamIdInput}
+          onChange={(e) => setSteamIdInput(e.target.value)}
+          className="flex-1 px-4 py-2.5 border rounded-xl"
+        />
+        <Button type="submit" disabled={loading}>
+          {loading ? "Buscando..." : "Buscar"}
+        </Button>
+      </form>
+    </div>
+  )
+}
 type Game = {
   appid: number
   name: string
@@ -110,7 +137,6 @@ export default function SteamApp() {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [achievements, setAchievements] = useState<Achievement[] | null>(null)
 
-  // Ofertas
   const [offers, setOffers] = useState<Offer[]>([])
   const [offersLoading, setOffersLoading] = useState(false)
   const [offersError, setOffersError] = useState<string | null>(null)
@@ -205,7 +231,6 @@ export default function SteamApp() {
         ),
       ])
 
-      // Si el usuario cambió de juego muy rápido, descartamos el resultado viejo.
       if (requestId !== selectRequestIdRef.current) return
 
       const schemaAchievements =
@@ -250,32 +275,6 @@ export default function SteamApp() {
 
   const achievementsCountApprox = Math.round(gamesCount * 20)
   const perfectGamesApprox = Math.round(gamesCount * 0.1)
-
-  function SteamSearchForm() {
-    return (
-      <div className="max-w-2xl">
-        <form
-          onSubmit={handleSubmit}
-          className="flex gap-3 flex-col sm:flex-row sm:items-center mb-6"
-        >
-          <input
-            type="text"
-            placeholder="Tu SteamID64"
-            value={steamIdInput}
-            onChange={(e) => setSteamIdInput(e.target.value)}
-            className="flex-1 px-4 py-2.5 border rounded-xl bg-background/60 backdrop-blur border-border/60 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-          <Button
-            type="submit"
-            disabled={loading}
-            className="bg-primary hover:bg-primary/90 rounded-xl px-6 h-11 shadow-md"
-          >
-            {loading ? "Buscando..." : "Buscar"}
-          </Button>
-        </form>
-      </div>
-    )
-  }
 
   function ProfilePanel() {
     if (!profile) return null
@@ -608,7 +607,12 @@ export default function SteamApp() {
         Busca tu perfil de Steam
       </h1>
 
-      <SteamSearchForm />
+      <SteamSearchForm
+        steamIdInput={steamIdInput}
+        setSteamIdInput={setSteamIdInput}
+        handleSubmit={handleSubmit}
+        loading={loading}
+      />
 
       {error && <p className="text-red-500 mt-2">{error}</p>}
       {loading && !error && (
